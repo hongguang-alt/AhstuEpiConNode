@@ -7,8 +7,34 @@ const {
 } = require('../config')
 //缓存数据
 const dataList = require('../cacheData/dataList.json')
-const cityHosDataList = require('../cacheData/cityHosDataList.js')
+const dataMock = require('../cacheData/dataMock.json')
 
+const cityHosDataList = require('../cacheData/cityHosDataList.js')
+const nodemailer = require('nodemailer')
+
+async function main({
+    str,
+    qq
+}) {
+    let transporter = nodemailer.createTransport({
+        host: "smtp.qq.com",
+        port: 465,
+        secure: true,
+        auth: {
+            user: "2273049646@qq.com",
+            pass: "nlmnrkmffzbvebhj",
+        },
+    });
+
+    await transporter.sendMail({
+        from: '2273049646@qq.com', // sender address
+        to: qq, // list of receivers
+        subject: "订阅疫苗邮件", // Subject line
+        text: str, // plain text body
+    }, (err, res) => {
+        console.log(err, res)
+    })
+}
 
 
 class User {
@@ -20,7 +46,7 @@ class User {
         } = await ctx.request.body
         let res = await DBUser.findOne({
             sid
-        })
+        }).select('+password')
         if (res && res.password === password) {
             const token = jwt.sign({
                 name: res.name,
@@ -45,14 +71,16 @@ class User {
             }
         }
     }
+
     //套取疫情图
     async worldMap(ctx) {
         ctx.body = {
             status: '200',
             msg: '获取成功',
-            data: dataList
+            data: dataMock
         }
     }
+
     //获取安科的数据
     async ankeMap(ctx) {
         let res = await DBCollege.find()
@@ -62,7 +90,6 @@ class User {
             data: res
         }
     }
-
 
     //更改安科的学校数据
     async ankeMapManage(ctx) {
@@ -144,6 +171,10 @@ class User {
                 msg: '绑定成功',
                 status: '200'
             }
+            main({
+                str: '你已经成功订阅，请留意邮箱信息哦！',
+                qq: email
+            })
         } else {
             ctx.body = {
                 msg: '请不要重复绑定',
@@ -178,18 +209,13 @@ class User {
         }
     }
 
-
+    //展示订阅的人
     async showEmail(ctx) {
         let res = await DBUser.find()
         ctx.body = {
             status: "200",
             msg: '获取成功',
-            data: {
-                email: res.email,
-                name: res.name,
-                college: res.college,
-                sid: res.sid
-            }
+            data: res
         }
     }
 

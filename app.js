@@ -9,6 +9,7 @@ const koaJwt = require('koa-jwt')
 const {
     secret
 } = require('./config')
+require('./getData')
 //增加前缀
 const router = Router({
     prefix: '/api'
@@ -36,7 +37,7 @@ app.use(function (ctx, next) {
             throw err;
         }
     });
-}) 
+})
 
 //对权限做验证
 app.use(koaJwt({
