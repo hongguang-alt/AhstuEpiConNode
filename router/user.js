@@ -8,6 +8,9 @@ router.post('/login', User.login)
 //套取天性数据的接口
 router.get('/worldmap', User.worldMap)
 
+//套取天行数据完全返回作为表格
+router.get('/worldmaplist', User.worldMapList)
+
 //获取安科的确诊数据
 router.get('/ankemap', User.ankeMap)
 
@@ -37,6 +40,11 @@ router.post('/leave', User.leave)
 //假期状态的接口
 router.get('/leavestatus', User.leaveStatus)
 
+//判断目的地的风险接口
+router.get('/destination', User.destination)
+
+//根据时间数组来判断，请假风险中的区域
+router.post('/sevendayperson', User.sevenDayPersonLeave)
 
 //获取审批列表
 router.get('/approval', User.approInfo)

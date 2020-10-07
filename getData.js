@@ -16,6 +16,12 @@ getData = async () => {
     fs.writeFileSync(path.join(__dirname, 'cacheData/dataMock.json'), list, (content, err) => {
         console.log(err)
     })
+
+    let allData = JSON.stringify(body.newslist)
+    fs.writeFileSync(path.join(__dirname, 'cacheData/dataAllData.json'), allData, (content, err) => {
+        console.log(err)
+    })
+
 }
 
 

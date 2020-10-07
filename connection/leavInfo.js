@@ -5,7 +5,9 @@ const courseSchema = new mongoose.Schema({
     leaveiphone: String,
     leavereason: String,
     date: Array,
-    status: Number
+    status: Number,
+    destination: String,
+    risklevel: Number
 })
 
 module.exports = mongoose.model('LeaveInfos', courseSchema);

@@ -1,6 +1,7 @@
 const DBUser = require('../connection/user')
 const DBULeaveInfo = require('../connection/leavInfo')
 const DBCollege = require('../connection/college')
+const DBDestination = require('../connection/destination')
 const jwt = require('jsonwebtoken')
 const {
     secret
@@ -8,6 +9,7 @@ const {
 //缓存数据
 const dataList = require('../cacheData/dataList.json')
 const dataMock = require('../cacheData/dataMock.json')
+const dataAllData = require('../cacheData/dataAllData.json')
 
 const cityHosDataList = require('../cacheData/cityHosDataList.js')
 const nodemailer = require('nodemailer')
@@ -72,12 +74,21 @@ class User {
         }
     }
 
-    //套取疫情图
+    //套取疫情图地图
     async worldMap(ctx) {
         ctx.body = {
             status: '200',
             msg: '获取成功',
             data: dataMock
+        }
+    }
+
+    //获取疫情列表的数据
+    async worldMapList(ctx) {
+        ctx.body = {
+            status: '200',
+            msg: '获取成功',
+            data: dataAllData
         }
     }
 
@@ -265,6 +276,77 @@ class User {
         }
     }
 
+    //判断请假目的地的风险区的接口，0低风险，1中风险，2高风险
+    async destination(ctx) {
+        let {
+            destination
+        } = ctx.request.query
+
+        let risklevel = 0
+        let res = await DBDestination.findOne({
+            destination
+        })
+        if (res) {
+            risklevel = res.risklevel
+        }
+        ctx.body = {
+            status: '200',
+            msg: '获取成功',
+            data: risklevel
+        }
+    }
+
+
+    //查询14天中请假的人数
+    async sevenDayPersonLeave(ctx) {
+        let {
+            sevenDateArr
+        } = ctx.request.body
+
+        let allDate = await DBUser.find().populate('leaveInfo')
+        let arr = []
+        allDate.forEach(item => {
+            if (item.leaveInfo) {
+                arr.push(item.leaveInfo)
+            }
+        })
+        //低风险区
+        let low = [],
+            mid = [],
+            heigh = []
+        for (let k = 0; k < 14; k++) {
+            low[k] = 0
+            mid[k] = 0
+            heigh[k] = 0
+        }
+        console.log(arr)
+        for (let i = 0; i < sevenDateArr.length; i++) {
+            for (let j = 0; j < arr.length; j++) {
+                let maxDate = arr[j].date[1]
+                let minDate = arr[j].date[0]
+                let Date = sevenDateArr[i]
+                let status = arr[j].risklevel
+                if (maxDate >= Date && minDate <= Date && arr[j].status === 1) {
+                    if (status === 0) {
+                        low[i]++
+                    } else if (status === 1) {
+                        mid[i]++
+                    } else if (status === 2) {
+                        heigh[i]++
+                    }
+                }
+            }
+        }
+        ctx.body = {
+            status: "200",
+            msg: "获取数据成功",
+            data: {
+                low,
+                mid,
+                heigh
+            }
+        }
+    }
 
     //获取审批信息的接口
     async approInfo(ctx) {
