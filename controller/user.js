@@ -493,7 +493,7 @@ class User {
                 }, secret, {
                     expiresIn: '24h'
                 })
-                ctx.response.redirect('http://localhost:8080/#/home/worldmap?token=' + token)
+                ctx.response.redirect('http://hongguang.club:3004/#/home/worldmap?token=' + token)
             }
         } else {
             ctx.body = {
