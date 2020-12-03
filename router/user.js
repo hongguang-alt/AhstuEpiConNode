@@ -59,5 +59,8 @@ router.delete('/deleteagree/:sid', User.deleteAgree)
 //个人信息
 router.get('/personinfo', User.personInfo)
 
+//授权接口
+router.get('/auth', User.auth)
+
 
 module.exports = router

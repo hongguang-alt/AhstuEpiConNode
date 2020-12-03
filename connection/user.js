@@ -17,6 +17,8 @@ const courseSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'LeaveInfos'
     },
+    //易班注册的用户
+    yb_userid: String
 })
 
 module.exports = mongoose.model('Users', courseSchema);

@@ -43,7 +43,7 @@ app.use(function (ctx, next) {
 app.use(koaJwt({
     secret: secret
 }).unless({
-    path: [/^\/api\/user\/login/]
+    path: [/^\/api\/user\/login/, /^\/api\/user\/auth/]
 }))
 
 

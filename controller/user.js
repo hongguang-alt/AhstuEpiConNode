@@ -6,6 +6,14 @@ const jwt = require('jsonwebtoken')
 const {
     secret
 } = require('../config')
+const {
+    CLIENTID,
+    REDIRECTURL,
+    CLIENTSECTET
+} = require('../config')
+const superagent = require('superagent')
+
+
 //缓存数据
 const dataList = require('../cacheData/dataList.json')
 const dataMock = require('../cacheData/dataMock.json')
@@ -419,6 +427,79 @@ class User {
             status: "200",
             msg: "获取个人信息成功",
             data: res
+        }
+    }
+
+    //易班授权接口
+    async auth(ctx) {
+        const {
+            code
+        } = ctx.query
+        if (code) {
+            //获取令牌
+            let res = await superagent.post('https://openapi.yiban.cn/oauth/access_token')
+                .field('client_id', CLIENTID)
+                .field('redirect_uri', REDIRECTURL)
+                .field('code', code)
+                .field('client_secret', CLIENTSECTET)
+
+            const {
+                status,
+                info,
+                access_token,
+                userid
+            } = JSON.parse(res.text)
+            if (status === 'error') {
+                ctx.body = {
+                    status: '201',
+                    msg: info
+                }
+            } else {
+                //获取用户信息
+                let {
+                    text
+                } = await superagent.get('https://openapi.yiban.cn/user/me?access_token=' + access_token)
+                let userInfo = JSON.parse(text).info
+                /**
+                 * 获取易班信息，注册用户，初始化密码
+                 * 查询是否存在，不存在注册，存在则登陆这个页面，重定向
+                 * 注册，返回token即可
+                 */
+                let res = await DBUser.findOne({
+                    yb_userid: userInfo.yb_userid
+                })
+                if (!res) {
+                    let insert = await new DBUser({
+                        ...userInfo,
+                        admin: 'student',
+                        name: userInfo.yb_username,
+                        sex: userInfo.yb_sex === 'M' ? '男' : "女",
+                        password: '123456',
+                        sid: 'yb' + userInfo.yb_userid
+                    })
+                    await insert.save()
+                    res = await DBUser.findOne({
+                        yb_userid: userInfo.yb_userid
+                    })
+                }
+                const token = jwt.sign({
+                    name: res.name,
+                    sid: res.sid,
+                    sex: res.sex,
+                    college: res.college,
+                    admin: res.admin,
+                    local: res.local,
+                    access_token
+                }, secret, {
+                    expiresIn: '24h'
+                })
+                ctx.response.redirect('http://localhost:8080/#/home/worldmap?token=' + token)
+            }
+        } else {
+            ctx.body = {
+                status: '201',
+                msg: '授权失败，不存在code',
+            }
         }
     }
 }
